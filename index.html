@@ -1,0 +1,1164 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Structural Tower - Interactive Digital Twin</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Three.js (3D Graphics Library) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Three.js OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1329;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Scanline and glowing cyber elements */
+        .cyber-grid {
+            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        .glow-green {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        .glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#030712] text-slate-100 min-h-screen cyber-grid overflow-x-hidden">
+
+    <!-- Top Banner: System Controls and Status -->
+    <header class="border-b border-slate-800 bg-[#070d19]/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 glow-green animate-pulse">
+                <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                    APEX-01 <span class="text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full uppercase font-mono">Twin Online</span>
+                </h1>
+                <p class="text-xs text-slate-400">Cyber-Structural Live Telemetry & System Specs Dashboard</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 text-xs font-mono">
+            <!-- Simulated Sync -->
+            <div class="flex items-center gap-2 px-3 py-2 bg-slate-900/80 border border-slate-800/80 rounded-lg">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span class="text-slate-400">SAT FEED: LIVE</span>
+                <span id="pingTime" class="text-emerald-400 ml-1">42ms</span>
+            </div>
+
+            <!-- Active Alerts Indicator -->
+            <div id="alertBox" class="flex items-center gap-2 px-3 py-2 bg-slate-900/80 border border-slate-800/80 rounded-lg text-emerald-400">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                <span id="alertStatus">ALL SYSTEMS NOMINAL</span>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-lg">
+                <button onclick="setSystemMode('monitoring')" id="btn-mode-monitoring" class="px-3 py-1.5 rounded text-white bg-slate-800 font-medium">Monitoring</button>
+                <button onclick="setSystemMode('stress')" id="btn-mode-stress" class="px-3 py-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800/50">Stress Test</button>
+                <button onclick="setSystemMode('drill')" id="btn-mode-drill" class="px-3 py-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800/50">Evac Drill</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1700px] mx-auto p-4 lg:p-6 grid grid-cols-1 xl:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Specs & Static Architectural Parameters -->
+        <section class="xl:col-span-3 flex flex-col gap-6">
+            
+            <!-- Architect Blueprint Card -->
+            <div class="bg-[#090f1d]/90 border border-slate-800/80 rounded-xl p-5 relative overflow-hidden">
+                <div class="absolute right-[-10px] top-[-10px] text-slate-800/30 font-bold text-7xl select-none font-mono">SPEC</div>
+                <div class="flex items-center gap-2 mb-4 text-slate-300">
+                    <i data-lucide="building" class="w-5 h-5 text-emerald-400"></i>
+                    <h2 class="font-bold tracking-wide uppercase text-sm">Structural Blueprint</h2>
+                </div>
+                
+                <div class="space-y-3 text-xs font-mono">
+                    <div class="flex justify-between py-2 border-b border-slate-800/60">
+                        <span class="text-slate-400">Primary Height</span>
+                        <span class="text-white font-semibold">312.4 Meters</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-800/60">
+                        <span class="text-slate-400">Total Levels</span>
+                        <span class="text-white font-semibold">76 Floors</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-800/60">
+                        <span class="text-slate-400">Gross Floor Area</span>
+                        <span class="text-white font-semibold">145,200 m²</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-800/60">
+                        <span class="text-slate-400">Exo-Structural Steel</span>
+                        <span class="text-white font-semibold">32,500 Metric Tons</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-800/60">
+                        <span class="text-slate-400">Dome Diameter</span>
+                        <span class="text-white font-semibold">64.0 Meters</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-slate-800/60">
+                        <span class="text-slate-400">Energy Source</span>
+                        <span class="text-emerald-400 font-semibold">Geo-Thermal Hydro-Core</span>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <span class="text-slate-400">LEED Rating</span>
+                        <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                            Platinum ★
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-slate-900/60 rounded-lg border border-slate-800/50 text-[11px] text-slate-300 leading-relaxed">
+                    Designed as an autonomous vertical city. The biome-dome serves as a localized environmental hub while the curved dynamic curtain walling is built to withstand high-velocity alpine wind currents.
+                </div>
+            </div>
+
+            <!-- Real-time Energy & Resource Flow Grid -->
+            <div class="bg-[#090f1d]/90 border border-slate-800/80 rounded-xl p-5">
+                <div class="flex items-center gap-2 mb-4 text-slate-300">
+                    <i data-lucide="zap" class="w-5 h-5 text-emerald-400"></i>
+                    <h2 class="font-bold tracking-wide uppercase text-sm">Core Energy Systems</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Power Gen -->
+                    <div>
+                        <div class="flex justify-between text-xs font-mono mb-1.5">
+                            <span class="text-slate-400">Dome Geothermal Output</span>
+                            <span id="txt-power-gen" class="text-emerald-400 font-semibold">14.2 MW</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                            <div id="bar-power-gen" class="bg-emerald-500 h-full w-[72%] transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Solar Harnessing -->
+                    <div>
+                        <div class="flex justify-between text-xs font-mono mb-1.5">
+                            <span class="text-slate-400">Dynamic Glazing Solar Gain</span>
+                            <span id="txt-solar-gain" class="text-amber-400 font-semibold">4.8 MW</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                            <div id="bar-solar-gain" class="bg-amber-400 h-full w-[45%] transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Water Loop -->
+                    <div>
+                        <div class="flex justify-between text-xs font-mono mb-1.5">
+                            <span class="text-slate-400">Closed HVAC Loop Pressure</span>
+                            <span id="txt-hvac-pressure" class="text-blue-400 font-semibold">98.4%</span>
+                        </div>
+                        <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                            <div id="bar-hvac-pressure" class="bg-blue-500 h-full w-[98%] transition-all duration-500"></div>
+                        </div>
+                    </div>
+
+                    <!-- Grid Status Overlay -->
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800/80 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            <div class="text-[10px] font-mono">
+                                <p class="text-slate-400 uppercase">Power Grid</p>
+                                <p class="text-white font-bold">Stable</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950/60 p-2.5 rounded border border-slate-800/80 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            <div class="text-[10px] font-mono">
+                                <p class="text-slate-400 uppercase">HVAC Flow</p>
+                                <p class="text-white font-bold">Nominal</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Highlights / Layer Controls -->
+            <div class="bg-[#090f1d]/90 border border-slate-800/80 rounded-xl p-5">
+                <div class="flex items-center gap-2 mb-3 text-slate-300">
+                    <i data-lucide="layers" class="w-5 h-5 text-emerald-400"></i>
+                    <h2 class="font-bold tracking-wide uppercase text-sm">Visual Overlays</h2>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Toggle digital twin telemetry overlays inside the dynamic 3D simulator.</p>
+                
+                <div class="space-y-2 text-xs font-mono">
+                    <button onclick="toggleVisualLayer('structure')" id="btn-layer-structure" class="w-full text-left px-3 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 flex justify-between items-center transition-all">
+                        <span>Exoskeleton Structural Wire</span>
+                        <span class="text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-400 uppercase">On</span>
+                    </button>
+                    <button onclick="toggleVisualLayer('energy')" id="btn-layer-energy" class="w-full text-left px-3 py-2.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/50 text-slate-400 flex justify-between items-center transition-all">
+                        <span>Power Conduit Grid Lines</span>
+                        <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 uppercase">Off</span>
+                    </button>
+                    <button onclick="toggleVisualLayer('thermal')" id="btn-layer-thermal" class="w-full text-left px-3 py-2.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/50 text-slate-400 flex justify-between items-center transition-all">
+                        <span>Thermal Envelope Sensors</span>
+                        <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 uppercase">Off</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Center Column: Dual-Mode Viewport (Schematic vs. Real World Sketchfab) -->
+        <section class="xl:col-span-6 flex flex-col gap-6">
+            
+            <!-- 3D Canvas Box -->
+            <div class="bg-[#090f1d]/95 border border-slate-800 rounded-xl p-1 overflow-hidden relative flex flex-col min-h-[550px] lg:min-h-[650px]">
+                
+                <!-- Viewport Mode Tabs & Control Panel -->
+                <div class="absolute top-4 left-4 right-4 z-30 flex flex-wrap gap-2 justify-between items-center">
+                    <!-- Toggle Tabs -->
+                    <div class="bg-slate-950/90 backdrop-blur border border-slate-800/80 rounded-lg p-1 flex gap-1">
+                        <button onclick="switchViewportMode('schematic')" id="btn-view-schematic" class="px-3 py-2 rounded text-[11px] font-mono font-bold uppercase transition bg-slate-800 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Schematic Twin
+                        </button>
+                        <button onclick="switchViewportMode('sketchfab')" id="btn-view-sketchfab" class="px-3 py-2 rounded text-[11px] font-mono font-bold uppercase transition text-slate-400 hover:text-white flex items-center gap-1.5">
+                            <i data-lucide="box" class="w-3.5 h-3.5"></i>
+                            Real World CAD
+                        </button>
+                    </div>
+
+                    <!-- Action/Target Buttons (Only shown for Schematic mode) -->
+                    <div id="schematic-actions" class="bg-slate-950/90 backdrop-blur border border-slate-800/80 rounded-lg p-1 flex gap-1">
+                        <button onclick="focusComponent('tower')" class="px-2 py-1.5 rounded text-[11px] font-mono text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                            Tower
+                        </button>
+                        <button onclick="focusComponent('dome')" class="px-2 py-1.5 rounded text-[11px] font-mono text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                            Dome
+                        </button>
+                        <button onclick="focusComponent('truss')" class="px-2 py-1.5 rounded text-[11px] font-mono text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                            Truss
+                        </button>
+                        <button onclick="resetCamera()" class="px-2 py-1.5 rounded text-[11px] font-mono text-slate-400 hover:text-white transition flex items-center gap-1">
+                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Simulation Overlay Box (Only populated/meaningful in Schematic mode) -->
+                <div id="schematic-overlay" class="absolute bottom-4 left-4 right-4 z-25 grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-950/90 backdrop-blur border border-slate-800 rounded-xl p-3">
+                    <div class="p-2 border-r border-slate-800/60 font-mono">
+                        <p class="text-[10px] text-slate-400">Wind Strain (Pinnacle)</p>
+                        <p id="sim-wind-strain" class="text-emerald-400 text-sm font-semibold">12 mm (Nominal)</p>
+                    </div>
+                    <div class="p-2 border-r border-slate-800/60 font-mono">
+                        <p class="text-[10px] text-slate-400">Seismic Load Status</p>
+                        <p id="sim-seismic" class="text-emerald-400 text-sm font-semibold">0.02g (Stable)</p>
+                    </div>
+                    <div class="p-2 border-r border-slate-800/60 font-mono">
+                        <p class="text-[10px] text-slate-400">Solar Elevation Angle</p>
+                        <p id="sim-solar-angle" class="text-amber-400 text-sm font-semibold">45°</p>
+                    </div>
+                    <div class="p-2 font-mono">
+                        <p class="text-[10px] text-slate-400">Dampener Capacity</p>
+                        <p id="sim-dampener" class="text-emerald-400 text-sm font-semibold">100%</p>
+                    </div>
+                </div>
+
+                <!-- Viewport Container Frame -->
+                <div class="w-full flex-grow relative bg-[#040914] min-h-[450px]">
+                    
+                    <!-- Mode 1: Three.js Canvas Container -->
+                    <div id="canvas-container" class="absolute inset-0 w-full h-full flex items-center justify-center">
+                        <!-- Interactive Helper Tip -->
+                        <div class="absolute top-20 right-4 z-10 bg-slate-950/80 text-[10px] text-slate-400 px-3 py-2 rounded font-mono pointer-events-none flex flex-col gap-1 items-end border border-slate-800/60">
+                            <div class="flex items-center gap-1.5 text-emerald-400">
+                                <i data-lucide="mouse-pointer" class="w-3.5 h-3.5"></i> LEFT CLICK + DRAG TO ROTATE
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> SCROLL WHEEL TO ZOOM
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="move" class="w-3.5 h-3.5"></i> RIGHT CLICK + DRAG TO PAN
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode 2: Sketchfab Embed Container (Initially Hidden) -->
+                    <div id="sketchfab-container" class="absolute inset-0 w-full h-full hidden bg-slate-950">
+                        <iframe 
+                            id="sketchfab-frame"
+                            class="w-full h-full border-0"
+                            title="Modern structural tower"
+                            src="https://sketchfab.com/models/4210a39235394f5bb8388d7d07dc8d47/embed?autostart=1&internal=1&tracking=0&ui_ar=0&ui_help=0&ui_infos=0&ui_settings=1&ui_vr=0&transparent=1&cardboard=0"
+                            allow="autoplay; fullscreen; xr-spatial-tracking"
+                            execution-while-out-of-viewport
+                            execution-while-not-rendered
+                            web-share>
+                        </iframe>
+                    </div>
+
+                    <!-- Global Loading screen -->
+                    <div id="three-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-[#040914] z-40">
+                        <div class="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mb-4"></div>
+                        <p class="text-sm font-mono text-emerald-400 uppercase tracking-widest animate-pulse">Initializing Digital Twin Core...</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Dynamic System Simulation Slider controls -->
+            <div class="bg-[#090f1d]/90 border border-slate-800/80 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Wind Slider -->
+                <div>
+                    <label class="flex justify-between text-xs font-mono text-slate-400 mb-2">
+                        <span>Simulated Wind Speed</span>
+                        <span id="label-wind" class="text-emerald-400">18 km/h</span>
+                    </label>
+                    <input type="range" id="slider-wind" min="0" max="150" value="18" 
+                        class="w-full accent-emerald-500 cursor-pointer bg-slate-800 h-1 rounded-lg"
+                        oninput="onWindSpeedChange(this.value)">
+                </div>
+
+                <!-- Solar Slider -->
+                <div>
+                    <label class="flex justify-between text-xs font-mono text-slate-400 mb-2">
+                        <span>Day/Night Simulation</span>
+                        <span id="label-solar" class="text-amber-400">Solar peak (12:00)</span>
+                    </label>
+                    <input type="range" id="slider-solar" min="0" max="24" value="12" step="0.5"
+                        class="w-full accent-amber-500 cursor-pointer bg-slate-800 h-1 rounded-lg"
+                        oninput="onSolarElevationChange(this.value)">
+                </div>
+
+                <!-- Seismic Slider -->
+                <div>
+                    <label class="flex justify-between text-xs font-mono text-slate-400 mb-2">
+                        <span>Seismic Ground Sway</span>
+                        <span id="label-seismic" class="text-slate-400 font-semibold">0.0 Richter</span>
+                    </label>
+                    <input type="range" id="slider-seismic" min="0" max="8" value="0" step="0.1"
+                        class="w-full accent-red-500 cursor-pointer bg-slate-800 h-1 rounded-lg"
+                        oninput="onSeismicChange(this.value)">
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- Right Column: Real-time Telemetry & Schedules -->
+        <section class="xl:col-span-3 flex flex-col gap-6">
+            
+            <!-- Live Waveform Charts (Using custom JS canvas draws) -->
+            <div class="bg-[#090f1d]/90 border border-slate-800/80 rounded-xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <i data-lucide="activity" class="w-5 h-5 text-emerald-400"></i>
+                        <h2 class="font-bold tracking-wide uppercase text-sm">Telemetry Feed</h2>
+                    </div>
+                    <span class="text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded">REALTIME</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Sway Graph -->
+                    <div>
+                        <div class="flex justify-between text-[11px] font-mono mb-1">
+                            <span class="text-slate-400">Structural Dampener Sway Oscillation</span>
+                            <span id="chart-sway-val" class="text-emerald-400">12.0 mm</span>
+                        </div>
+                        <div class="bg-slate-950 rounded border border-slate-800 p-1">
+                            <canvas id="canvas-chart-sway" class="w-full h-16"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Power Balance Graph -->
+                    <div>
+                        <div class="flex justify-between text-[11px] font-mono mb-1">
+                            <span class="text-slate-400">Micro-Grid Thermal Power Delta</span>
+                            <span id="chart-power-val" class="text-amber-400">19.0 MW</span>
+                        </div>
+                        <div class="bg-slate-950 rounded border border-slate-800 p-1">
+                            <canvas id="canvas-chart-power" class="w-full h-16"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance & Operations Schedule -->
+            <div class="bg-[#090f1d]/90 border border-slate-800/80 rounded-xl p-5 flex-grow flex flex-col">
+                <div class="flex items-center gap-2 mb-4 text-slate-300">
+                    <i data-lucide="wrench" class="w-5 h-5 text-emerald-400"></i>
+                    <h2 class="font-bold tracking-wide uppercase text-sm">System Operations Schedule</h2>
+                </div>
+
+                <!-- List of tasks/events -->
+                <div class="space-y-3 overflow-y-auto max-h-[350px] flex-grow pr-1 text-xs" id="schedule-container">
+                    <!-- Dynamically populated/interacted by state -->
+                </div>
+
+                <!-- Custom Test Interaction Triggers -->
+                <div class="mt-4 pt-4 border-t border-slate-800 flex gap-2">
+                    <button onclick="triggerEmergencyOverload()" class="flex-1 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 py-2 rounded font-mono text-xs transition duration-200 uppercase tracking-wider">
+                        Power Overload
+                    </button>
+                    <button onclick="triggerResetAll()" class="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700/80 py-2 rounded font-mono text-xs transition duration-200 uppercase tracking-wider">
+                        Normal State
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer Specs Info -->
+    <footer class="mt-8 border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 font-mono">
+        <p>© 2026 APEX STRUCTURAL DYNAMICS RESEARCH CENTER • DIGITAL TWIN SIM v2.8.5</p>
+    </footer>
+
+    <!-- Interactive Script Layer -->
+    <script>
+        // State variables
+        let appState = {
+            mode: 'monitoring', // monitoring, stress, drill
+            viewportMode: 'schematic', // schematic or sketchfab
+            windSpeed: 18,      // km/h
+            solarElevation: 12, // hours (0-24)
+            seismicGround: 0,   // Richter
+            layers: {
+                structure: true,
+                energy: false,
+                thermal: false
+            },
+            telemetry: {
+                windSway: 12,
+                energyTotal: 19,
+                hvacPressure: 98.4
+            },
+            focusedModule: 'all', // tower, dome, truss, all
+            ping: 42
+        };
+
+        // Live task lists
+        let tasks = [
+            { id: 1, title: 'Inspect Geodesic Dome Seal joints', state: 'Scheduled', urgency: 'Low', progress: 0 },
+            { id: 2, title: 'Upper Antenna Mass Damper lubrication', state: 'In-Progress', urgency: 'Medium', progress: 45 },
+            { id: 3, title: 'Glass curtain dynamic solar-gain tuneup', state: 'Pending', urgency: 'Low', progress: 0 },
+            { id: 4, title: 'Foundation Seismic Dampening diagnostics', state: 'Nominal', urgency: 'High', progress: 100 }
+        ];
+
+        // Three.js variables
+        let scene, camera, renderer, mainGroup, controls;
+        let groundCircle, mainTower, geodesicDome, trussNetwork, antennaMast;
+        let ambientLight, directionalLight;
+
+        // Custom chart canvas contexts
+        let chartSwayCtx, chartPowerCtx;
+        let chartSwayHistory = Array(40).fill(12);
+        let chartPowerHistory = Array(40).fill(19);
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load Lucide Icons
+            lucide.createIcons();
+            
+            // Setup canvas charts
+            setupCharts();
+
+            // Setup dynamic ping simulation
+            setInterval(() => {
+                appState.ping = Math.floor(Math.random() * 15) + 35;
+                document.getElementById('pingTime').innerText = `${appState.ping}ms`;
+                updateCharts();
+            }, 1000);
+
+            // Initialize Three.js scene once window loaded
+            initThreeJS();
+
+            // Populate system operations list
+            renderSchedule();
+        });
+
+        // Toggle Viewport Panel Mode (Schematic Twin vs Sketchfab Real-world CAD CAD)
+        function switchViewportMode(mode) {
+            appState.viewportMode = mode;
+            
+            const btnSchematic = document.getElementById('btn-view-schematic');
+            const btnSketchfab = document.getElementById('btn-view-sketchfab');
+            const canvasContainer = document.getElementById('canvas-container');
+            const sketchfabContainer = document.getElementById('sketchfab-container');
+            const schematicActions = document.getElementById('schematic-actions');
+            const schematicOverlay = document.getElementById('schematic-overlay');
+
+            if (mode === 'schematic') {
+                // Style Active Tab
+                btnSchematic.className = "px-3 py-2 rounded text-[11px] font-mono font-bold uppercase transition bg-slate-800 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5";
+                btnSketchfab.className = "px-3 py-2 rounded text-[11px] font-mono font-bold uppercase transition text-slate-400 hover:text-white flex items-center gap-1.5";
+                
+                // Toggle frames
+                canvasContainer.classList.remove('hidden');
+                sketchfabContainer.classList.add('hidden');
+                
+                // Show Overlay metrics & camera buttons
+                schematicActions.classList.remove('hidden');
+                schematicOverlay.classList.remove('hidden');
+
+                // Trigger resize to fix canvas size if it was resized while hidden
+                setTimeout(onWindowResize, 10);
+            } else if (mode === 'sketchfab') {
+                // Style Active Tab
+                btnSketchfab.className = "px-3 py-2 rounded text-[11px] font-mono font-bold uppercase transition bg-slate-800 text-blue-400 border border-blue-500/20 flex items-center gap-1.5";
+                btnSchematic.className = "px-3 py-2 rounded text-[11px] font-mono font-bold uppercase transition text-slate-400 hover:text-white flex items-center gap-1.5";
+                
+                // Toggle frames
+                canvasContainer.classList.add('hidden');
+                sketchfabContainer.classList.remove('hidden');
+                
+                // Hide custom overlay and controls
+                schematicActions.classList.add('hidden');
+                schematicOverlay.classList.add('hidden');
+            }
+        }
+
+        // Setup chart contexts
+        function setupCharts() {
+            const canvasSway = document.getElementById('canvas-chart-sway');
+            const canvasPower = document.getElementById('canvas-chart-power');
+            
+            if(canvasSway && canvasPower) {
+                // Resize based on client width
+                canvasSway.width = canvasSway.parentElement.clientWidth;
+                canvasSway.height = 64;
+                canvasPower.width = canvasPower.parentElement.clientWidth;
+                canvasPower.height = 64;
+
+                chartSwayCtx = canvasSway.getContext('2d');
+                chartPowerCtx = canvasPower.getContext('2d');
+            }
+        }
+
+        // Draw and update animated canvas charts
+        function updateCharts() {
+            if (!chartSwayCtx || !chartPowerCtx) return;
+
+            // Generate next random oscillation data based on windSpeed and state
+            const targetSway = (appState.windSpeed / 10) + (appState.seismicGround * 8) + (Math.sin(Date.now() / 300) * 0.8);
+            chartSwayHistory.push(Math.max(1, targetSway));
+            chartSwayHistory.shift();
+            document.getElementById('chart-sway-val').innerText = `${Math.max(1, targetSway).toFixed(1)} mm`;
+
+            // Core power delta shifts
+            const targetPower = 14.2 + (appState.solarElevation > 6 && appState.solarElevation < 18 ? (18 - Math.abs(12 - appState.solarElevation)) * 0.5 : 0) + (Math.sin(Date.now() / 1000) * 0.2);
+            chartPowerHistory.push(targetPower);
+            chartPowerHistory.shift();
+            document.getElementById('chart-power-val').innerText = `${targetPower.toFixed(1)} MW`;
+
+            // Draw Sway
+            drawWaveform(chartSwayCtx, chartSwayHistory, '#10b981');
+            // Draw Power
+            drawWaveform(chartPowerCtx, chartPowerHistory, '#f59e0b');
+        }
+
+        function drawWaveform(ctx, history, color) {
+            const w = ctx.canvas.width;
+            const h = ctx.canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw simple tech grid lines
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 0.5;
+            for(let i = 1; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, h * (i/4));
+                ctx.lineTo(w, h * (i/4));
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            const step = w / (history.length - 1);
+            
+            const maxVal = Math.max(...history, 1);
+            for(let i = 0; i < history.length; i++) {
+                // Map values dynamically
+                const x = i * step;
+                const y = h - ((history[i] / maxVal) * (h - 8) + 4);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Gradient Fill Area
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.closePath();
+            ctx.fillStyle = color + '0a'; // transparent tint
+            ctx.fill();
+        }
+
+        // Initialize ThreeJS Scene for 3D Interactive Cyber Representation
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight || 500;
+
+            // Remove loading placeholder text
+            const loader = document.getElementById('three-loading');
+            if (loader) loader.style.display = 'none';
+
+            // Create Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x040914, 0.002);
+
+            // Create Camera - repositioned to fit full building safely
+            camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
+            camera.position.set(0, 100, 280);
+
+            // Create Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(width, height);
+            renderer.setClearColor(0x040914, 1);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Initialize OrbitControls for robust zooming, panning, and rotating
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2 - 0.01; // Avoid clip below the ground line
+            controls.minDistance = 30;
+            controls.maxDistance = 500;
+            controls.target.set(0, 60, 0); // Focus on the middle level of the high-rise tower
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.5;
+
+            // Primary container group
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+
+            // Add lighting
+            ambientLight = new THREE.AmbientLight(0x0e172e, 2);
+            scene.add(ambientLight);
+
+            directionalLight = new THREE.DirectionalLight(0x38bdf8, 1.8);
+            directionalLight.position.set(100, 100, 50);
+            scene.add(directionalLight);
+
+            // Ground grid styling
+            const gridHelper = new THREE.GridHelper(300, 30, 0x1e293b, 0x0f172a);
+            gridHelper.position.y = -0.5;
+            mainGroup.add(gridHelper);
+
+            // Construct Ground Ring / Driveway
+            const groundGeo = new THREE.RingGeometry(80, 85, 64);
+            const groundMat = new THREE.MeshBasicMaterial({ color: 0x1e293b, side: THREE.DoubleSide });
+            const groundRing = new THREE.Mesh(groundGeo, groundMat);
+            groundRing.rotation.x = Math.PI / 2;
+            groundRing.position.y = 0.1;
+            mainGroup.add(groundRing);
+
+            // Construct Tower
+            construct3DTower();
+
+            // Start animation loop
+            animate();
+
+            // Handle Resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // Programmatically generate modular architecture representation using basic shapes
+        function construct3DTower() {
+            // Main skyscraper materials
+            const glassMat = new THREE.MeshStandardMaterial({
+                color: 0x0f274a,
+                roughness: 0.1,
+                metalness: 0.9,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const steelMat = new THREE.MeshStandardMaterial({
+                color: 0xd1d5db,
+                roughness: 0.3,
+                metalness: 0.95
+            });
+
+            const skeletonMat = new THREE.MeshBasicMaterial({
+                color: 0x10b981,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+
+            // 1. Core Skyscraper Blocks (Multi-stepped curve look matching site_approach.jpg)
+            mainTower = new THREE.Group();
+
+            // Tower Segment Base (Heavy podium)
+            const baseGeo = new THREE.BoxGeometry(40, 20, 30);
+            const baseMesh = new THREE.Mesh(baseGeo, glassMat);
+            baseMesh.position.y = 10;
+            mainTower.add(baseMesh);
+
+            // Adding solar fins on Base
+            for(let i = 2; i < 20; i += 3) {
+                const finGeo = new THREE.BoxGeometry(42, 0.4, 32);
+                const finMesh = new THREE.Mesh(finGeo, steelMat);
+                finMesh.position.set(0, i, 0);
+                mainTower.add(finMesh);
+            }
+
+            // Tower Segment Mid (Stepped inset curve)
+            const midGeo = new THREE.BoxGeometry(32, 40, 24);
+            const midMesh = new THREE.Mesh(midGeo, glassMat);
+            midMesh.position.y = 40;
+            mainTower.add(midMesh);
+
+            // Solar fins Mid
+            for(let i = 22; i < 60; i += 3) {
+                const finGeo = new THREE.BoxGeometry(34, 0.4, 26);
+                const finMesh = new THREE.Mesh(finGeo, steelMat);
+                finMesh.position.set(0, i, 0);
+                mainTower.add(finMesh);
+            }
+
+            // Tower Segment Skylobby (recessed block)
+            const lobbyGeo = new THREE.BoxGeometry(24, 10, 18);
+            const lobbyMesh = new THREE.Mesh(lobbyGeo, glassMat);
+            lobbyMesh.position.y = 65;
+            mainTower.add(lobbyMesh);
+
+            // Tower Segment Upper (Curved sweeping crown)
+            const upperGeo = new THREE.CylinderGeometry(10, 14, 50, 4, 1, false, Math.PI/4);
+            const upperMesh = new THREE.Mesh(upperGeo, glassMat);
+            upperMesh.position.set(0, 95, -2);
+            upperMesh.scale.set(1.1, 1, 0.7); // flatten it slightly to represent stepped look
+            mainTower.add(upperMesh);
+
+            // Thin solar fins Upper
+            for(let i = 72; i < 120; i += 4) {
+                const finGeo = new THREE.BoxGeometry(20, 0.4, 14);
+                const finMesh = new THREE.Mesh(finGeo, steelMat);
+                finMesh.position.set(0, i, -2);
+                mainTower.add(finMesh);
+            }
+
+            // Structural Exoskeleton mesh wrapping
+            const structuralSkeleton = new THREE.Mesh(
+                new THREE.BoxGeometry(33, 122, 25),
+                skeletonMat
+            );
+            structuralSkeleton.position.y = 61;
+            structuralSkeleton.name = "exo_structure";
+            mainTower.add(structuralSkeleton);
+
+            // Antenna Mast at peak
+            antennaMast = new THREE.Group();
+            const antennaPole = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 1, 30, 8), steelMat);
+            antennaPole.position.y = 135;
+            antennaMast.add(antennaPole);
+
+            // Antenna beacon light
+            const beaconGeo = new THREE.SphereGeometry(1.5, 8, 8);
+            const beaconMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+            beacon.position.y = 150;
+            antennaMast.add(beacon);
+
+            mainTower.add(antennaMast);
+            mainGroup.add(mainTower);
+
+            // 2. Base Dome (Geodesic Eco Reactor Core from site_approach.jpg)
+            geodesicDome = new THREE.Group();
+            geodesicDome.position.set(0, 0, 50); // Set in front of the tower
+
+            // Outer Dome Shell
+            const domeGeo = new THREE.SphereGeometry(18, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+            const domeMat = new THREE.MeshStandardMaterial({
+                color: 0x1f2937,
+                roughness: 0.15,
+                metalness: 0.9,
+                side: THREE.DoubleSide
+            });
+            const domeMesh = new THREE.Mesh(domeGeo, domeMat);
+            geodesicDome.add(domeMesh);
+
+            // Outer futuristic geometric framing
+            const domeFrameGeo = new THREE.SphereGeometry(18.2, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+            const domeFrameMat = new THREE.MeshBasicMaterial({
+                color: 0x3b82f6,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.4
+            });
+            const domeFrameMesh = new THREE.Mesh(domeFrameGeo, domeFrameMat);
+            geodesicDome.add(domeFrameMesh);
+
+            // Dynamic glow ring at bottom
+            const ringGeo = new THREE.RingGeometry(18.2, 19, 32);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x10b981, side: THREE.DoubleSide });
+            const glowRing = new THREE.Mesh(ringGeo, ringMat);
+            glowRing.rotation.x = Math.PI / 2;
+            glowRing.position.y = 0.2;
+            geodesicDome.add(glowRing);
+
+            mainGroup.add(geodesicDome);
+
+            // 3. Cyber-Structural Exoskeleton Trusses linking Dome and Tower base
+            trussNetwork = new THREE.Group();
+            
+            // Connect front Dome to tower with metallic space-frame cylinders
+            const trussGeo1 = new THREE.CylinderGeometry(0.5, 0.5, 52, 6);
+            const trussMat = new THREE.MeshStandardMaterial({ color: 0x6b7280, metalness: 0.9, roughness: 0.2 });
+            
+            const trussLeft = new THREE.Mesh(trussGeo1, trussMat);
+            trussLeft.position.set(-16, 8, 25);
+            trussLeft.rotation.set(-Math.PI/6, 0, Math.PI/12);
+            trussNetwork.add(trussLeft);
+
+            const trussRight = new THREE.Mesh(trussGeo1, trussMat);
+            trussRight.position.set(16, 8, 25);
+            trussRight.rotation.set(-Math.PI/6, 0, -Math.PI/12);
+            trussNetwork.add(trussRight);
+
+            // Bridge over walkways
+            const bridgeGeo = new THREE.BoxGeometry(32, 2, 45);
+            const bridgeMesh = new THREE.Mesh(bridgeGeo, steelMat);
+            bridgeMesh.position.set(0, 14, 25);
+            bridgeMesh.rotation.set(0.1, 0, 0);
+            trussNetwork.add(bridgeMesh);
+
+            mainGroup.add(trussNetwork);
+        }
+
+        // Animation Frame Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Update OrbitControls
+            if (controls && appState.viewportMode === 'schematic') {
+                controls.update();
+            }
+
+            // Wind sway logic
+            if (appState.windSpeed > 40) {
+                const swayMultiplier = (appState.windSpeed - 40) * 0.0003;
+                const time = Date.now() * 0.003;
+                // Apply slight trigonometric sway to upper sections
+                antennaMast.rotation.z = Math.sin(time) * swayMultiplier;
+                antennaMast.rotation.x = Math.cos(time) * swayMultiplier;
+                
+                // Update live text labels
+                const swayVal = Math.round((appState.windSpeed / 10) + (Math.sin(time) * 2));
+                document.getElementById('sim-wind-strain').innerText = `${swayVal} mm (${appState.windSpeed > 100 ? 'Caution Warning' : 'Stable'})`;
+                document.getElementById('sim-wind-strain').className = appState.windSpeed > 100 ? 'text-amber-500 text-sm font-bold' : 'text-emerald-400 text-sm font-semibold';
+            } else {
+                antennaMast.rotation.set(0,0,0);
+                document.getElementById('sim-wind-strain').innerText = `12 mm (Nominal)`;
+                document.getElementById('sim-wind-strain').className = 'text-emerald-400 text-sm font-semibold';
+            }
+
+            // Seismic shake logic
+            if (appState.seismicGround > 0) {
+                const shake = appState.seismicGround * 0.012;
+                camera.position.x += (Math.random() - 0.5) * shake;
+                camera.position.y += (Math.random() - 0.5) * shake;
+                
+                // Active alerts tracking
+                document.getElementById('sim-seismic').innerText = `${(appState.seismicGround * 0.1).toFixed(2)}g (Active Strain)`;
+                document.getElementById('sim-seismic').className = 'text-red-500 text-sm font-bold';
+            } else {
+                document.getElementById('sim-seismic').innerText = `0.02g (Stable)`;
+                document.getElementById('sim-seismic').className = 'text-emerald-400 text-sm font-semibold';
+            }
+
+            // Render updated scene
+            if (appState.viewportMode === 'schematic') {
+                renderer.render(scene, camera);
+            }
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+            
+            // Redraw telemetry canvas charts
+            setupCharts();
+        }
+
+        // Mode Toggles (Monitoring, Stress Test, Evacuation Drill)
+        function setSystemMode(mode) {
+            appState.mode = mode;
+            
+            // Style active buttons
+            const buttons = ['btn-mode-monitoring', 'btn-mode-stress', 'btn-mode-drill'];
+            buttons.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.className = "px-3 py-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800/50";
+                }
+            });
+            
+            const activeBtn = document.getElementById(`btn-mode-${mode}`);
+            if (activeBtn) {
+                activeBtn.className = "px-3 py-1.5 rounded text-white bg-slate-800 font-medium";
+            }
+
+            // Trigger action triggers based on selection
+            if (mode === 'monitoring') {
+                triggerResetAll();
+            } else if (mode === 'stress') {
+                onWindSpeedChange(95);
+                onSeismicChange(4.2);
+            } else if (mode === 'drill') {
+                // Flash alert systems red
+                const alertBox = document.getElementById('alertBox');
+                alertBox.className = "flex items-center gap-2 px-3 py-2 bg-red-900/40 border border-red-500/60 rounded-lg text-red-400 glow-red animate-pulse";
+                document.getElementById('alertStatus').innerText = "EVAC DRILL IN PROGRESS";
+
+                // Add active evacuation task
+                tasks.unshift({
+                    id: 99,
+                    title: 'Deploy Lower-Podium Fire Doors',
+                    state: 'Active',
+                    urgency: 'Critical',
+                    progress: 80
+                });
+                renderSchedule();
+            }
+        }
+
+        // Telemetry Interaction Sliders
+        function onWindSpeedChange(val) {
+            appState.windSpeed = parseInt(val);
+            document.getElementById('slider-wind').value = val;
+            document.getElementById('label-wind').innerText = `${val} km/h`;
+            
+            // Adjust warning states based on wind severity
+            const statusText = document.getElementById('alertStatus');
+            const alertBox = document.getElementById('alertBox');
+            
+            if (val > 110) {
+                statusText.innerText = "HIGH WIND SUSPENSION";
+                alertBox.className = "flex items-center gap-2 px-3 py-2 bg-amber-900/30 border border-amber-500/50 rounded-lg text-amber-400 animate-pulse";
+            } else if (appState.mode === 'monitoring') {
+                statusText.innerText = "ALL SYSTEMS NOMINAL";
+                alertBox.className = "flex items-center gap-2 px-3 py-2 bg-slate-900/80 border border-slate-800 rounded-lg text-emerald-400";
+            }
+        }
+
+        function onSolarElevationChange(val) {
+            appState.solarElevation = parseFloat(val);
+            document.getElementById('slider-solar').value = val;
+            
+            const hours = Math.floor(val);
+            const minutes = (val % 1 === 0.5) ? "30" : "00";
+            document.getElementById('label-solar').innerText = `Solar Profile: ${hours}:${minutes}`;
+
+            // Adjust directional light azimuth dynamically to match sun!
+            if (directionalLight) {
+                const angle = (val / 24) * Math.PI * 2;
+                directionalLight.position.set(Math.cos(angle) * 120, Math.sin(angle) * 120, 50);
+                // Cycle background clear colors based on simulated time
+                if (val > 19 || val < 5) {
+                    // Night scene
+                    renderer.setClearColor(0x02040a, 1);
+                    scene.fog.color.setHex(0x02040a);
+                } else {
+                    // Day sun
+                    renderer.setClearColor(0x040914, 1);
+                    scene.fog.color.setHex(0x040914);
+                }
+            }
+
+            document.getElementById('sim-solar-angle').innerText = `${Math.round(val * 15)}°`;
+        }
+
+        // Handle Seismic Changes
+        function onSeismicChange(val) {
+            appState.seismicGround = parseFloat(val);
+            document.getElementById('slider-seismic').value = val;
+            document.getElementById('label-seismic').innerText = `${val} Richter`;
+
+            const alertBox = document.getElementById('alertBox');
+            if (val > 3) {
+                document.getElementById('alertStatus').innerText = `SEISMIC THREAT DETECTED`;
+                alertBox.className = "flex items-center gap-2 px-3 py-2 bg-red-950 border border-red-500 rounded-lg text-red-400 glow-red animate-pulse";
+            } else if (appState.mode === 'monitoring') {
+                document.getElementById('alertStatus').innerText = "ALL SYSTEMS NOMINAL";
+                alertBox.className = "flex items-center gap-2 px-3 py-2 bg-slate-900/80 border border-slate-800 rounded-lg text-emerald-400";
+            }
+        }
+
+        // Focus Components in 3D scene (Now fully integrated with OrbitControls updates)
+        function focusComponent(module) {
+            appState.focusedModule = module;
+            
+            if (module === 'tower') {
+                camera.position.set(0, 80, 180);
+                controls.target.set(0, 70, 0);
+            } else if (module === 'dome') {
+                camera.position.set(0, 25, 90);
+                controls.target.set(0, 10, 50);
+            } else if (module === 'truss') {
+                camera.position.set(0, 30, 80);
+                controls.target.set(0, 10, 25);
+            }
+            controls.update();
+        }
+
+        function resetCamera() {
+            camera.position.set(0, 100, 280);
+            controls.target.set(0, 60, 0);
+            controls.update();
+        }
+
+        // Toggle Exoskeleton wireframes
+        function toggleVisualLayer(layer) {
+            appState.layers[layer] = !appState.layers[layer];
+            
+            const btn = document.getElementById(`btn-layer-${layer}`);
+            if (appState.layers[layer]) {
+                btn.className = "w-full text-left px-3 py-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 flex justify-between items-center transition-all";
+                btn.querySelector('span:last-child').className = "text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-400 uppercase";
+                btn.querySelector('span:last-child').innerText = "On";
+            } else {
+                btn.className = "w-full text-left px-3 py-2.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/50 text-slate-400 flex justify-between items-center transition-all";
+                btn.querySelector('span:last-child').className = "text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 uppercase";
+                btn.querySelector('span:last-child').innerText = "Off";
+            }
+
+            // Apply visibility adjustments in Three.js
+            if (layer === 'structure') {
+                const skeleton = mainTower.getObjectByName("exo_structure");
+                if (skeleton) skeleton.visible = appState.layers.structure;
+            } else if (layer === 'energy') {
+                // Render green power conduits style if checked
+                const customGlow = mainTower.getObjectByName("exo_structure");
+                if (customGlow) {
+                    customGlow.material.color.setHex(appState.layers.energy ? 0x3b82f6 : 0x10b981);
+                }
+            } else if (layer === 'thermal') {
+                const customGlow = mainTower.getObjectByName("exo_structure");
+                if (customGlow) {
+                    customGlow.material.color.setHex(appState.layers.thermal ? 0xef4444 : 0x10b981);
+                }
+            }
+        }
+
+        // System Overload State Simulation
+        function triggerEmergencyOverload() {
+            setSystemMode('stress');
+            onWindSpeedChange(135);
+            onSeismicChange(6.8);
+            
+            // Force alarm text alerts
+            document.getElementById('alertStatus').innerText = "CRITICAL FAILURE IMMINENT";
+            document.getElementById('alertBox').className = "flex items-center gap-2 px-3 py-2 bg-red-600 border border-red-500 rounded-lg text-white glow-red animate-pulse";
+        }
+
+        // Reset system to pristine safe defaults
+        function triggerResetAll() {
+            onWindSpeedChange(18);
+            onSolarElevationChange(12);
+            onSeismicChange(0);
+            
+            appState.mode = 'monitoring';
+            document.getElementById('alertStatus').innerText = "ALL SYSTEMS NOMINAL";
+            document.getElementById('alertBox').className = "flex items-center gap-2 px-3 py-2 bg-slate-900/80 border border-slate-800 rounded-lg text-emerald-400";
+            
+            // Remove mock evacuation drills
+            tasks = tasks.filter(t => t.id !== 99);
+            renderSchedule();
+        }
+
+        // Schedule Action Logic
+        function toggleTask(id) {
+            const index = tasks.findIndex(t => t.id === id);
+            if (index !== -1) {
+                if (tasks[index].state !== 'Nominal') {
+                    tasks[index].state = 'Nominal';
+                    tasks[index].progress = 100;
+                } else {
+                    tasks[index].state = 'Scheduled';
+                    tasks[index].progress = 0;
+                }
+                renderSchedule();
+            }
+        }
+
+        // Populate System Operations Checklist
+        function renderSchedule() {
+            const container = document.getElementById('schedule-container');
+            if(!container) return;
+            
+            container.innerHTML = '';
+            tasks.forEach(task => {
+                const urgencyColors = {
+                    Critical: 'border-red-500 bg-red-500/10 text-red-300',
+                    High: 'border-amber-500 bg-amber-500/10 text-amber-300',
+                    Medium: 'border-blue-500 bg-blue-500/10 text-blue-300',
+                    Low: 'border-slate-700 bg-slate-900/50 text-slate-300',
+                };
+
+                const card = document.createElement('div');
+                card.className = `p-3 rounded-lg border ${urgencyColors[task.urgency] || urgencyColors.Low} flex flex-col gap-2`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-1">
+                        <div>
+                            <p class="font-semibold text-[11px] uppercase tracking-wide leading-tight">${task.title}</p>
+                            <p class="text-[10px] text-slate-400 mt-1 font-mono">Progress: ${task.progress}% | State: <span class="font-bold">${task.state}</span></p>
+                        </div>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase bg-slate-950/60">${task.urgency}</span>
+                    </div>
+                    <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
+                        <div class="bg-current h-full transition-all duration-300" style="width: ${task.progress}%"></div>
+                    </div>
+                    <div class="flex justify-end gap-1 mt-1">
+                        <button onclick="toggleTask(${task.id})" class="text-[10px] font-mono bg-slate-950/40 hover:bg-slate-950 px-2 py-1 rounded transition">
+                            ${task.state === 'Nominal' ? 'Reopen' : 'Authorize Check'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
+
+```
